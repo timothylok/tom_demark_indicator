@@ -143,6 +143,50 @@ Implemented in `tom_demark_indicator/discord_notifier.py`.
 
 ---
 
+## JSON Export Schema
+
+Produced by `tom_demark_indicator/exporter.py` (`save_data_json`).
+Schema is stable across all symbols and timeframes.
+
+### Root fields
+
+| Field | Type | Description |
+|---|---|---|
+| `symbol` | string | Ticker, e.g. `"AAPL"` |
+| `timeframe` | string | yfinance interval, e.g. `"1d"`, `"1wk"`, `"4h"` |
+| `exported_at` | ISO 8601 string | UTC-local datetime of export |
+| `rows` | integer | Number of rows in `data` |
+| `columns` | string[] | Ordered column names matching each row object |
+| `daily_signal_summary` | object | Pre-computed summary (see below) |
+| `data` | object[] | Per-bar OHLCV + indicator rows |
+
+### `daily_signal_summary` object
+
+Computed from `formatter.py` (`build_daily_signal_summary`).
+Use this in the web UI so signal logic does not need to be re-implemented in JS.
+
+| Key | Type | Values |
+|---|---|---|
+| `trend` | string | `"UP"` / `"DOWN"` / `"FLAT"` |
+| `td_event` | string | Full action label (same text as the signal report) |
+| `risk` | string | `"LOW"` / `"MODERATE"` / `"HIGH"` |
+| `is_alert` | boolean | `true` only when a TD 9 is complete |
+
+### `data` row object
+
+| Field | Type | Notes |
+|---|---|---|
+| `datetime` | ISO 8601 string | `YYYY-MM-DDTHH:MM:SS` |
+| `Open` `High` `Low` `Close` | float | OHLC prices |
+| `Volume` | float | Bar volume |
+| `ema_10` `ema_30` | float | Exponential moving averages |
+| `macd` `macd_signal` `macd_hist` | float | MACD line, signal line, histogram |
+| `volume_ma` | float | Rolling volume moving average |
+| `td_buy_setup` `td_sell_setup` | integer 0-9 | Active TD setup count; 0 = none |
+| `td_buy_9` `td_sell_9` | integer 0 or 1 | 1 = TD 9 complete on this bar |
+
+---
+
 ## Important Caveats
 
 - TD Sequential counts price **exhaustion**, not direction. A Buy 9 means a downtrend may be exhausted — it does **not** guarantee a bounce.

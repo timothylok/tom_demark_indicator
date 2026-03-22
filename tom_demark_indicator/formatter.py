@@ -264,3 +264,23 @@ def build_signal_summary(symbol: str, df: pd.DataFrame) -> SignalSummary:
         td_buy_9=bool(last["td_buy_9"]),
         td_sell_9=bool(last["td_sell_9"]),
     )
+
+
+def build_daily_signal_summary(s: SignalSummary) -> dict:
+    """Return a machine-readable summary dict for JSON export / web UI.
+
+    Keys
+    ----
+    trend    : "UP" | "DOWN" | "FLAT"
+    td_event : human-readable action string (same text as the signal report)
+    risk     : "LOW" | "MODERATE" | "HIGH"
+    is_alert : true when a TD 9 is complete (highest-priority signal)
+    """
+    action_text, is_alert = _action(s)
+    risk_label = _risk(s.macd_hist, s.macd_hist_prev).split()[0]
+    return {
+        "trend":    _trend(s.close, s.ema10, s.ema30),
+        "td_event": action_text,
+        "risk":     risk_label,
+        "is_alert": is_alert,
+    }

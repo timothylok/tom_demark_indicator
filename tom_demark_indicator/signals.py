@@ -23,6 +23,7 @@ from .plotting_mpf import plot_with_mplfinance
 from .exporter import save_data_json, default_image_path
 from .formatter import (
     build_signal_summary,
+    build_daily_signal_summary,
     format_report_header,
     format_ticker_block,
     format_summary,
@@ -112,7 +113,10 @@ def run_daily_signals(
             print(format_ticker_block(idx, len(tickers), summary))
 
             # Save JSON data
-            json_path = save_data_json(df, symbol, config.interval)
+            json_path = save_data_json(
+                df, symbol, config.interval,
+                signal_summary=build_daily_signal_summary(summary),
+            )
 
             # Save/show chart
             image_path = default_image_path(symbol, config.interval) if save_charts else None
