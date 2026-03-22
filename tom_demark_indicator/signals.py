@@ -27,7 +27,7 @@ from .formatter import (
     format_ticker_block,
     format_summary,
 )
-from .discord_notifier import send_daily_signals
+from .discord_notifier import send_daily_signals, send_error_alert
 
 # Load .env from the project root (two levels up from this file)
 _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
@@ -90,12 +90,16 @@ def run_daily_signals(
             try:
                 df = load_data(config)
             except Exception as exc:
-                print(f"\n  [WARNING] {symbol}: could not load data - {exc}")
+                msg = f"Could not load data for {symbol}: {exc}"
+                print(f"\n  [WARNING] {msg}")
+                send_error_alert(f"Data Load Failed: {symbol}", msg)
                 errors.append(symbol)
                 continue
 
             if df.empty:
-                print(f"\n  [WARNING] {symbol}: no data returned. Check that the ticker symbol is valid.")
+                msg = f"No data returned for {symbol}. Check that the ticker symbol is valid on Yahoo Finance."
+                print(f"\n  [WARNING] {msg}")
+                send_error_alert(f"Symbol Not Found: {symbol}", msg)
                 errors.append(symbol)
                 continue
 

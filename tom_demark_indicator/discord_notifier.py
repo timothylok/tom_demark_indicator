@@ -180,6 +180,24 @@ def _post_embeds(webhook_url: str, embeds: list[dict]) -> bool:
     return success
 
 
+def send_error_alert(title: str, message: str) -> None:
+    """Post a brief error embed to the Discord webhook.
+
+    Silently skips if DISCORD_WEBHOOK_URL is not set.
+    """
+    webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+    if not webhook_url:
+        return
+
+    embed = {
+        "title":       f":x: {title}",
+        "description": f"```\n{message[:1900]}\n```",
+        "color":       0xff1744,
+        "footer":      {"text": f"TD Sequential Daily Signals  |  {date.today()}"},
+    }
+    _post_embeds(webhook_url, [embed])
+
+
 def send_daily_signals(signals: list[SignalSummary], run_date: date) -> None:
     """Build and post all ticker + summary embeds to the Discord webhook.
 

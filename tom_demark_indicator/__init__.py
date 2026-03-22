@@ -5,7 +5,7 @@ from .td_sequential import add_td_sequential
 from .plotting_mpf import plot_with_mplfinance
 from .exporter import save_data_json, default_image_path
 from .signals import run_daily_signals, get_stock_list
-from .discord_notifier import send_daily_signals
+from .discord_notifier import send_daily_signals, send_error_alert
 
 __all__ = [
     "PlotConfig",
@@ -18,4 +18,5 @@ __all__ = [
     "run_daily_signals",
     "get_stock_list",
     "send_daily_signals",
+    "send_error_alert",
 ]

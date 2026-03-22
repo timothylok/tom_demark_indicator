@@ -1,5 +1,19 @@
 # Changelog
 
+## 2026-03-22 — Discord error alerts
+
+### Added
+- `discord_notifier.send_error_alert(title, message)` — posts a red embed to Discord for any error
+- Error alerts fire in three cases:
+  1. Per-ticker data load failure (yfinance error) in `signals.py`
+  2. Per-ticker empty data / symbol not found in `signals.py`
+  3. Unhandled top-level crash in `run_daily.py` (full traceback sent)
+
+### Changed
+- `run_daily.py` — wrapped in try/except; calls `send_error_alert` on fatal crash then exits with code 1
+- `signals.py` — calls `send_error_alert` for each failed ticker before continuing the loop
+- `__init__.py` — exports `send_error_alert`
+
 ## 2026-03-22 — Discord webhook notifications
 
 ### Added
