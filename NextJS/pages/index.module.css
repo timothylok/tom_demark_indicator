@@ -1,0 +1,106 @@
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 32px 20px;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  margin-bottom: 28px;
+  border-bottom: 1px solid #21262d;
+  padding-bottom: 16px;
+}
+
+.header h1 {
+  font-size: 1.5rem;
+  letter-spacing: 0.06em;
+}
+
+.ts {
+  font-size: 0.75rem;
+  color: #8b949e;
+  margin-left: auto;
+}
+
+/* ── Ticker grid ─────────────────────────────────────────────────────────── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: block;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px;
+  transition: border-color 0.15s, transform 0.1s;
+  text-decoration: none;
+}
+
+.card:hover {
+  border-color: #58a6ff;
+  transform: translateY(-2px);
+}
+
+.cardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.ticker {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e6edf3;
+  letter-spacing: 0.05em;
+}
+
+.interval {
+  font-size: 0.72rem;
+  color: #8b949e;
+  border: 1px solid #30363d;
+  border-radius: 3px;
+  padding: 1px 5px;
+}
+
+.alertDot {
+  margin-left: auto;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #ff9800;
+  box-shadow: 0 0 6px #ff9800;
+}
+
+.badges {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.badge {
+  font-size: 0.72rem;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 1px 7px;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+}
+
+.event {
+  font-size: 0.75rem;
+  color: #8b949e;
+  font-style: italic;
+  line-height: 1.4;
+  /* Clamp to 2 lines so cards stay the same height */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}

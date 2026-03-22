@@ -1,0 +1,92 @@
+.card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+  transition: border-color 0.2s;
+}
+
+/* Pulse the border when there is a TD 9 alert */
+.card[data-alert='true'] {
+  border-color: #ff9800;
+  box-shadow: 0 0 8px #ff980044;
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.symbol {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #e6edf3;
+  letter-spacing: 0.04em;
+  font-family: 'Courier New', monospace;
+}
+
+.close {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #c9d1d9;
+  font-family: 'Courier New', monospace;
+}
+
+.alertBadge {
+  margin-left: auto;
+  background: #ff9800;
+  color: #000;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 3px 9px;
+  border-radius: 4px;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid;
+  border-radius: 4px;
+  padding: 2px 9px;
+  font-size: 0.78rem;
+  font-family: 'Courier New', monospace;
+  letter-spacing: 0.04em;
+}
+
+.badgeLabel {
+  opacity: 0.65;
+}
+
+.emaHint {
+  font-size: 0.75rem;
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+  margin-left: 4px;
+}
+
+.event {
+  font-size: 0.85rem;
+  color: #c9d1d9;
+  font-style: italic;
+  margin-bottom: 6px;
+  font-family: 'Courier New', monospace;
+}
+
+.oneLiner {
+  font-size: 0.78rem;
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+}

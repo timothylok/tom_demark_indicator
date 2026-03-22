@@ -1,0 +1,55 @@
+.bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.label {
+  font-size: 0.78rem;
+  color: #8b949e;
+  font-family: 'Courier New', monospace;
+  margin-right: 4px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid #30363d;
+  background: #161b22;
+  color: #8b949e;
+  font-size: 0.78rem;
+  font-family: 'Courier New', monospace;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+
+.btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Active state — layer is visible */
+.btn[data-active='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, #161b22);
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.4;
+  transition: opacity 0.15s;
+}
+
+.btn[data-active='true'] .dot {
+  opacity: 1;
+}
