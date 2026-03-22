@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-22 — Discord webhook notifications
+
+### Added
+- `tom_demark_indicator/discord_notifier.py` — builds and posts Discord embeds via webhook:
+  - One colour-coded embed per ticker (colour reflects signal state)
+  - Summary embed with setup progress table (code block) and BUY/SELL 9 headline
+  - Emoji indicators for TD state, trend, and risk
+  - Silently skips if `DISCORD_WEBHOOK_URL` is not set
+- `DISCORD_WEBHOOK_URL=` added to `.env` and `.env.example`
+
+### Changed
+- `signals.py` — calls `send_daily_signals()` after output file is written
+- `__init__.py` — exports `send_daily_signals`
+- `Legends.md` — added Discord embed colour coding and emoji indicator tables
+
 ## 2026-03-22 — Enhanced signal report formatting
 
 ### Added

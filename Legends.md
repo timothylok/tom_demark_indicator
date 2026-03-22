@@ -109,6 +109,40 @@ ACTION:  WATCH FOR REVERSAL -- BUY 9 COMPLETE. Potential exhaustion of downtrend
 
 ---
 
+## Discord Embed Colour Coding
+
+Implemented in `tom_demark_indicator/discord_notifier.py`.
+
+| Colour | Hex | Condition |
+|---|---|---|
+| Bright green | `#00e676` | BUY 9 complete |
+| Bright red | `#ff1744` | SELL 9 complete |
+| Light green | `#69f0ae` | Buy setup count 7 or 8 |
+| Orange | `#ff6d00` | Sell setup count 7 or 8 |
+| Grey | `#9e9e9e` | Buy or sell setup in progress (count 1-6) |
+| Sky blue | `#40c4ff` | No setup, trend UP |
+| Salmon | `#ff5252` | No setup, trend DOWN |
+| Light grey | `#bdbdbd` | No setup, trend FLAT (consolidating) |
+| Discord blurple | `#5865f2` | Summary embed |
+
+### Discord Emoji Indicators
+
+| Emoji | Meaning |
+|---|---|
+| :rotating_light: | TD 9 signal (buy or sell complete) -- alert |
+| :white_check_mark: | Buy 9 complete |
+| :warning: | Sell 9 complete |
+| :arrows_counterclockwise: | Setup in progress (not yet 9) |
+| :black_small_square: | No active setup |
+| :green_circle: | Risk LOW |
+| :yellow_circle: | Risk MODERATE |
+| :red_circle: | Risk HIGH |
+| :chart_with_upwards_trend: | Trend UP |
+| :chart_with_downwards_trend: | Trend DOWN |
+| :left_right_arrow: | Trend FLAT |
+
+---
+
 ## Important Caveats
 
 - TD Sequential counts price **exhaustion**, not direction. A Buy 9 means a downtrend may be exhausted — it does **not** guarantee a bounce.

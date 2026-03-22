@@ -27,6 +27,7 @@ from .formatter import (
     format_ticker_block,
     format_summary,
 )
+from .discord_notifier import send_daily_signals
 
 # Load .env from the project root (two levels up from this file)
 _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
@@ -143,6 +144,10 @@ def run_daily_signals(
         out_path = _output_path()
         out_path.write_text(buffer.getvalue(), encoding="utf-8")
         sys.stdout.write(f"\n  Output saved: {out_path}\n")
+
+    # Send to Discord after all output is written
+    if summaries:
+        send_daily_signals(summaries, date.today())
 
     return results
 
