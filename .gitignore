@@ -21,6 +21,10 @@ output/*
 
 # Environment variables
 .env
+.env.bak
+
+# Claude Code session files
+.claude/
 
 # OS
 .DS_Store
