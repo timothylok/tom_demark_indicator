@@ -150,27 +150,34 @@ def _build_summary_embed(signals: list[SignalSummary], run_date: date) -> dict:
 # Sender
 # ---------------------------------------------------------------------------
 
-def _post_embeds(webhook_url: str, embeds: list[dict]) -> None:
-    """POST up to 10 embeds per request (Discord limit)."""
-    # Split into chunks of 10
+def _post_embeds(webhook_url: str, embeds: list[dict]) -> bool:
+    """POST up to 10 embeds per request (Discord limit). Returns True on full success."""
+    success = True
     for i in range(0, len(embeds), 10):
         chunk = embeds[i:i + 10]
         payload = json.dumps({"embeds": chunk}).encode("utf-8")
         req = urllib.request.Request(
             webhook_url,
             data=payload,
-            headers={"Content-Type": "application/json"},
+            headers={
+                "Content-Type": "application/json",
+                "User-Agent": "TDSequentialBot/1.0",
+            },
             method="POST",
         )
         try:
             with urllib.request.urlopen(req) as resp:
                 if resp.status not in (200, 204):
                     print(f"  [Discord] Unexpected status {resp.status}")
+                    success = False
         except urllib.error.HTTPError as exc:
             body = exc.read().decode("utf-8", errors="replace")
             print(f"  [Discord] HTTP {exc.code}: {body}")
+            success = False
         except Exception as exc:
             print(f"  [Discord] Failed to send: {exc}")
+            success = False
+    return success
 
 
 def send_daily_signals(signals: list[SignalSummary], run_date: date) -> None:
@@ -180,11 +187,12 @@ def send_daily_signals(signals: list[SignalSummary], run_date: date) -> None:
     """
     webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
     if not webhook_url:
-        print("  [Discord] DISCORD_WEBHOOK_URL not set — skipping notification.")
+        print("  [Discord] DISCORD_WEBHOOK_URL not set - skipping notification.")
         return
 
     embeds = [_build_ticker_embed(s) for s in signals]
     embeds.append(_build_summary_embed(signals, run_date))
 
-    _post_embeds(webhook_url, embeds)
-    print(f"  [Discord] Sent {len(embeds)} embeds to webhook.")
+    ok = _post_embeds(webhook_url, embeds)
+    if ok:
+        print(f"  [Discord] {len(embeds)} embeds sent successfully.")
