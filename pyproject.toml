@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "tom_demark_indicator"
+version = "0.1.0"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.26",
+    "mplfinance>=0.12.10b0",
+    "matplotlib>=3.8",
+    "yfinance>=0.2.40",
+]
+
+[project.scripts]
+tdchart = "tom_demark_indicator.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
