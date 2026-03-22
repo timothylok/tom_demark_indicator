@@ -98,7 +98,9 @@ def export_ticker(symbol: str, interval: str, period: str) -> dict | None:
     bool_cols = export_df.select_dtypes(include="bool").columns
     export_df[bool_cols] = export_df[bool_cols].astype(int)
 
-    records = export_df.to_dict(orient="records")
+    # Use pandas to_json so NaN becomes null, not the bare token "NaN"
+    # (Python's json.dump writes NaN as a literal which JSON.parse rejects)
+    records = json.loads(export_df.to_json(orient="records"))
     exported_at = datetime.now().isoformat()
 
     payload = {
