@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-03-22 — images/ and data/ folders, JSON export
+
+### Added
+- `images/` folder — all PNG charts saved here automatically with timestamped filenames (`{SYMBOL}_{interval}_{YYYYMMDD_HHMMSS}.png`)
+- `data/` folder — all chart data saved here as JSON with timestamped filenames (`{SYMBOL}_{interval}_{YYYYMMDD_HHMMSS}.json`)
+- `tom_demark_indicator/exporter.py` — `save_data_json()` serialises the full DataFrame (OHLCV + all indicators) to JSON; `default_image_path()` generates timestamped PNG paths in `images/`
+
+### Changed
+- `cli.py` — removed `--save` flag; PNG now auto-saved to `images/` on every run; use `--show` for interactive window. JSON always saved to `data/` on every run.
+- `.gitignore` — ignores folder contents of `images/` and `data/` but keeps the folders via `.gitkeep`
+- `__init__.py` — exports `save_data_json` and `default_image_path`
+
+### JSON format
+```json
+{
+  "symbol": "AAPL",
+  "interval": "1d",
+  "exported_at": "2026-03-22T13:44:56",
+  "rows": 61,
+  "columns": ["datetime", "Open", "High", "Low", "Close", "Volume", "ema_10", ...],
+  "data": [{ "datetime": "2025-12-22T00:00:00", "Open": 272.6, ... }, ...]
+}
+```
+
+
 ## 2026-03-22 — Initial build
 
 ### Added

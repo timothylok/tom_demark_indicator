@@ -2,9 +2,10 @@
 
 Usage examples:
   tdchart AAPL
-  tdchart AAPL --period 6mo --interval 1d --ema 10 30 50 --save chart.png
+  tdchart AAPL --period 6mo --interval 1d --ema 10 30 50
   tdchart AAPL --start 2024-01-01 --end 2024-12-31 --no-td
-  tdchart --csv data.csv --symbol MY_DATA --save chart.png
+  tdchart AAPL --show                          # interactive window, still saves data JSON
+  tdchart --csv data.csv --symbol MY_DATA
 """
 
 from __future__ import annotations
@@ -17,6 +18,7 @@ from .data_loader import load_data
 from .indicators import add_indicators
 from .td_sequential import add_td_sequential
 from .plotting_mpf import plot_with_mplfinance
+from .exporter import default_image_path, save_data_json
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -50,7 +52,8 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Output
     out = p.add_argument_group("Output")
-    out.add_argument("--save", metavar="PATH", help="Save chart to PNG file instead of showing interactively")
+    out.add_argument("--show", action="store_true",
+                     help="Open interactive chart window instead of saving PNG")
     out.add_argument("--style", default="nightclouds", help="mplfinance style (default: nightclouds)")
 
     return p
@@ -92,7 +95,13 @@ def main(argv: list[str] | None = None) -> None:
     sell9 = df["td_sell_9"].sum()
     print(f"  TD setups: {buy9} buy-9, {sell9} sell-9")
 
-    plot_with_mplfinance(df, config, output_path=args.save)
+    # Always save data JSON to data/
+    json_path = save_data_json(df, config.symbol, config.interval)
+    print(f"  Data saved: {json_path}")
+
+    # Save PNG to images/ unless --show requested
+    image_path = None if args.show else default_image_path(config.symbol, config.interval)
+    plot_with_mplfinance(df, config, output_path=image_path)
 
 
 if __name__ == "__main__":
