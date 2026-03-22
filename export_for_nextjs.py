@@ -139,7 +139,48 @@ def export_ticker(symbol: str, interval: str, period: str) -> dict | None:
     }
 
 
-# ── Entry point ──────────────────────────────────────────────────────────────
+# ── Public API (importable from run_daily.py) ─────────────────────────────────
+
+def run_export(
+    tickers: list[str],
+    interval: str = "1d",
+    period: str = "1y",
+) -> list[dict]:
+    """Export all tickers to NextJS/data/ and write index.json.
+
+    Designed to be called programmatically (e.g. from run_daily.py).
+    Returns a list of index-entry dicts for every ticker that exported
+    successfully; an empty list means nothing was written.
+    """
+    print(f"[NextJS Export] {len(tickers)} ticker(s)  interval={interval}  period={period}")
+    print(f"[NextJS Export] Output dir: {OUTPUT_DIR}\n")
+
+    index_entries: list[dict] = []
+    for symbol in tickers:
+        entry = export_ticker(symbol, interval, period)
+        if entry:
+            index_entries.append(entry)
+
+    # Write index.json regardless of partial failures so the site stays
+    # consistent with whatever data was actually written.
+    index_payload = {
+        "generated_at": datetime.now().isoformat(),
+        "entries": index_entries,
+    }
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    index_path = OUTPUT_DIR / "index.json"
+    with open(index_path, "w", encoding="utf-8") as f:
+        json.dump(index_payload, f, indent=2)
+
+    ok  = len(index_entries)
+    err = len(tickers) - ok
+    print(f"\n[NextJS Export] Done.  {ok} exported, {err} failed.")
+    print(f"[NextJS Export] index.json -> {index_path}")
+
+    return index_entries
+
+
+# ── CLI entry point ───────────────────────────────────────────────────────────
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -165,29 +206,7 @@ def main() -> None:
         else _get_tickers_from_env()
     )
 
-    print(f"Exporting {len(tickers)} ticker(s)  interval={args.interval}  period={args.period}")
-    print(f"Output dir: {OUTPUT_DIR}\n")
-
-    index_entries: list[dict] = []
-    for symbol in tickers:
-        entry = export_ticker(symbol, args.interval, args.period)
-        if entry:
-            index_entries.append(entry)
-
-    # ── Write index.json ──────────────────────────────────────────────────────
-    # Next.js getStaticPaths reads this to enumerate all symbol pages.
-    index_payload = {
-        "generated_at": datetime.now().isoformat(),
-        "entries": index_entries,
-    }
-    index_path = OUTPUT_DIR / "index.json"
-    with open(index_path, "w", encoding="utf-8") as f:
-        json.dump(index_payload, f, indent=2)
-
-    ok  = len(index_entries)
-    err = len(tickers) - ok
-    print(f"\nDone.  {ok} exported, {err} failed.")
-    print(f"index.json -> {index_path}")
+    run_export(tickers, interval=args.interval, period=args.period)
 
 
 if __name__ == "__main__":
