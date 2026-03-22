@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-03-22 — Enhanced signal report formatting
+
+### Added
+- `tom_demark_indicator/formatter.py` — all formatting logic:
+  - `SignalSummary` NamedTuple holding all per-ticker metrics
+  - `_trend()` / `_trend_detail()` — UP/DOWN/FLAT from Close vs EMA10 vs EMA30
+  - `_risk()` — LOW/MODERATE/HIGH from MACD histogram direction (2-bar comparison)
+  - `_action()` — action label + alert flag (TD 9 complete, setup forming, trend intact, etc.)
+  - `format_ticker_block()` — per-ticker section with key numbers, trend, risk, action
+  - `format_summary()` — daily summary table (all tickers, TD counts, trend, MACD hist, risk)
+  - `format_report_header()` — date/watchlist header
+  - `build_signal_summary()` — extracts `SignalSummary` from a DataFrame
+
+### Changed
+- `signals.py` — uses formatter; alert actions wrapped in `>>>` / `<<<` lines
+
+### Report format
+```
+==================================================================
+  TD SEQUENTIAL DAILY SIGNALS
+  Date      : 2026-03-22
+  Watchlist : AAPL, TSLA, SPY, QQQ
+==================================================================
+  [4/4]  QQQ     |  2026-03-20  [*** SIGNAL ***]
+  Close: $582.06        EMA10: $596.60  (-$14.54)
+  TD Setup: Buy 9/9     EMA30: $603.92  (-$21.86)
+  MACD Hist: -1.608     Risk: HIGH (bearish momentum building)
+  Trend:   DOWN (Close < EMA10 < EMA30)
+
+  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+  ACTION:  WATCH FOR REVERSAL -- BUY 9 COMPLETE.
+  <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
+  DAILY SUMMARY  |  2026-03-22
+  BUY  9 Signals  : QQQ  <-- WATCH FOR REVERSAL
+  Symbol   TD         Trend  MACD Hist  Risk
+  QQQ      Buy  9/9   DOWN   -1.608     HIGH ***
+```
+
 ## 2026-03-22 — Scheduled task (Tue-Sat 10:15 AM NZST) + output/ folder
 
 ### Added
