@@ -1,5 +1,20 @@
 # Changelog
 
+## 2026-03-22 — Scheduled task (Tue-Sat 10:15 AM NZST) + output/ folder
+
+### Added
+- `output/` folder — daily signal reports saved as `{Weekday}_{YYYYMMDD_HHMMSS}.txt`
+- `run_daily.py` — entry point called by Windows Task Scheduler; runs full watchlist and writes output file
+- Windows Task Scheduler job `TDSequentialDailySignals` — runs Tue to Sat at 10:15 AM NZST, next run: 2026-03-24
+
+### Changed
+- `signals.py` — added `write_output` parameter; uses `_TeeWriter` to mirror console output to a file simultaneously; `_output_path()` generates timestamped path in `output/`
+- `.gitignore` — `output/` contents excluded, folder kept via `.gitkeep`
+
+### Output file format
+Filename: `Tuesday_20260324_101500.txt`
+Contents: full console report (signal table + chart/data paths + any alerts)
+
 ## 2026-03-22 — STOCK_LIST env var and daily signal engine
 
 ### Added

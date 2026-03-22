@@ -7,8 +7,11 @@ for the most recent bar.
 
 from __future__ import annotations
 
+import io
 import os
-from datetime import date
+import sys
+from contextlib import redirect_stdout
+from datetime import date, datetime
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -22,6 +25,7 @@ from .exporter import save_data_json, default_image_path
 
 # Load .env from the project root (two levels up from this file)
 _ENV_PATH = Path(__file__).resolve().parent.parent / ".env"
+_OUTPUT_DIR = Path(__file__).resolve().parent.parent / "output"
 load_dotenv(_ENV_PATH)
 
 
@@ -34,6 +38,15 @@ def get_stock_list() -> list[str]:
             "Add it to your .env file, e.g.: STOCK_LIST=AAPL,TSLA,SPY,QQQ"
         )
     return [s.strip().upper() for s in raw.split(",") if s.strip()]
+
+
+def _output_path() -> Path:
+    """Return a timestamped path inside output/ for today's run."""
+    _OUTPUT_DIR.mkdir(exist_ok=True)
+    now = datetime.now()
+    weekday = now.strftime("%A")          # e.g. Tuesday
+    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    return _OUTPUT_DIR / f"{weekday}_{timestamp}.txt"
 
 
 def _signal_line(symbol: str, last_date: date, last_close: float,
@@ -55,6 +68,7 @@ def run_daily_signals(
     config_overrides: dict | None = None,
     save_charts: bool = True,
     show_charts: bool = False,
+    write_output: bool = False,
 ) -> list[dict]:
     """Loop through STOCK_LIST and print TD signals for each ticker.
 
@@ -63,65 +77,92 @@ def run_daily_signals(
     config_overrides: dict of PlotConfig field overrides applied to every ticker.
     save_charts:      Save PNG to images/ for each ticker.
     show_charts:      Open interactive window for each ticker (use sparingly).
+    write_output:     Also write the full console report to output/ as a .txt file.
 
     Returns a list of signal dicts (one per ticker that loaded successfully).
     """
     tickers = get_stock_list()
     overrides = config_overrides or {}
 
-    print(f"\n=== Daily TD Sequential Signals [{date.today()}] ===")
-    print(f"Watchlist: {', '.join(tickers)}\n")
+    # Buffer captures everything printed so we can mirror it to a file
+    buffer = io.StringIO()
+    tee = _TeeWriter(sys.stdout, buffer)
 
-    results: list[dict] = []
-    errors: list[str] = []
+    with redirect_stdout(tee):
+        print(f"\n=== Daily TD Sequential Signals [{date.today()}] ===")
+        print(f"Watchlist: {', '.join(tickers)}\n")
 
-    for symbol in tickers:
-        config = PlotConfig(symbol=symbol, **overrides)
-        try:
-            df = load_data(config)
-        except Exception as exc:
-            msg = f"  [WARNING] {symbol}: could not load data — {exc}"
-            print(msg)
-            errors.append(symbol)
-            continue
+        results: list[dict] = []
+        errors: list[str] = []
 
-        if df.empty:
-            print(f"  [WARNING] {symbol}: no data returned. Check that the ticker symbol is valid.")
-            errors.append(symbol)
-            continue
+        for symbol in tickers:
+            config = PlotConfig(symbol=symbol, **overrides)
+            try:
+                df = load_data(config)
+            except Exception as exc:
+                print(f"  [WARNING] {symbol}: could not load data - {exc}")
+                errors.append(symbol)
+                continue
 
-        df = add_indicators(df, config)
-        df = add_td_sequential(df)
+            if df.empty:
+                print(f"  [WARNING] {symbol}: no data returned. Check that the ticker symbol is valid.")
+                errors.append(symbol)
+                continue
 
-        last = df.iloc[-1]
-        buy  = int(last["td_buy_setup"])
-        sell = int(last["td_sell_setup"])
-        line = _signal_line(symbol, df.index[-1].date(), float(last["Close"]), buy, sell)
-        print(line)
+            df = add_indicators(df, config)
+            df = add_td_sequential(df)
 
-        # Save JSON data
-        json_path = save_data_json(df, symbol, config.interval)
+            last = df.iloc[-1]
+            buy  = int(last["td_buy_setup"])
+            sell = int(last["td_sell_setup"])
+            line = _signal_line(symbol, df.index[-1].date(), float(last["Close"]), buy, sell)
+            print(line)
 
-        # Save/show chart
-        image_path = default_image_path(symbol, config.interval) if save_charts else None
-        if save_charts or show_charts:
-            plot_with_mplfinance(df, config, output_path=None if show_charts else image_path)
+            # Save JSON data
+            json_path = save_data_json(df, symbol, config.interval)
 
-        results.append({
-            "symbol": symbol,
-            "date": str(df.index[-1].date()),
-            "close": float(last["Close"]),
-            "td_buy_setup": buy,
-            "td_sell_setup": sell,
-            "td_buy_9": bool(last["td_buy_9"]),
-            "td_sell_9": bool(last["td_sell_9"]),
-            "json_path": json_path,
-            "image_path": image_path,
-        })
+            # Save/show chart
+            image_path = default_image_path(symbol, config.interval) if save_charts else None
+            if save_charts or show_charts:
+                plot_with_mplfinance(df, config, output_path=None if show_charts else image_path)
 
-    print()
-    if errors:
-        print(f"  [ALERT] The following symbols were not found or failed to load: {', '.join(errors)}")
-        print("  Check that each ticker is a valid symbol on Yahoo Finance.\n")
+            results.append({
+                "symbol": symbol,
+                "date": str(df.index[-1].date()),
+                "close": float(last["Close"]),
+                "td_buy_setup": buy,
+                "td_sell_setup": sell,
+                "td_buy_9": bool(last["td_buy_9"]),
+                "td_sell_9": bool(last["td_sell_9"]),
+                "json_path": json_path,
+                "image_path": image_path,
+            })
+
+        print()
+        if errors:
+            print(f"  [ALERT] The following symbols were not found or failed to load: {', '.join(errors)}")
+            print("  Check that each ticker is a valid symbol on Yahoo Finance.\n")
+
+    if write_output:
+        out_path = _output_path()
+        out_path.write_text(buffer.getvalue(), encoding="utf-8")
+        # Print directly to real stdout (not tee) so it doesn't recurse
+        sys.stdout.write(f"  Output saved: {out_path}\n")
 
     return results
+
+
+class _TeeWriter:
+    """Write to two streams simultaneously."""
+
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data: str) -> int:
+        for s in self._streams:
+            s.write(data)
+        return len(data)
+
+    def flush(self) -> None:
+        for s in self._streams:
+            s.flush()

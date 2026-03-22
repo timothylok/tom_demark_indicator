@@ -16,6 +16,8 @@ images/*
 !images/.gitkeep
 data/*
 !data/.gitkeep
+output/*
+!output/.gitkeep
 
 # Environment variables
 .env
