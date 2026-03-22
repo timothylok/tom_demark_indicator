@@ -1,10 +1,11 @@
 """Command-line interface for the DeMark/TD charting tool.
 
 Usage examples:
-  tdchart AAPL
+  tdchart                          # loop through STOCK_LIST env var (daily signals)
+  tdchart AAPL                     # single ticker
   tdchart AAPL --period 6mo --interval 1d --ema 10 30 50
   tdchart AAPL --start 2024-01-01 --end 2024-12-31 --no-td
-  tdchart AAPL --show                          # interactive window, still saves data JSON
+  tdchart AAPL --show              # interactive window, still saves data JSON
   tdchart --csv data.csv --symbol MY_DATA
 """
 
@@ -19,15 +20,20 @@ from .indicators import add_indicators
 from .td_sequential import add_td_sequential
 from .plotting_mpf import plot_with_mplfinance
 from .exporter import default_image_path, save_data_json
+from .signals import run_daily_signals
 
 
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="tdchart",
-        description="Plot candlestick chart with DeMark TD Sequential overlays.",
+        description=(
+            "Plot candlestick chart with DeMark TD Sequential overlays.\n"
+            "Run without a symbol to process all tickers in STOCK_LIST."
+        ),
     )
 
-    p.add_argument("symbol", nargs="?", default="AAPL", help="Ticker symbol (default: AAPL)")
+    p.add_argument("symbol", nargs="?", default=None,
+                   help="Ticker symbol. Omit to loop through STOCK_LIST env var.")
 
     # Data source
     src = p.add_argument_group("Data source")
@@ -59,10 +65,8 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
-def main(argv: list[str] | None = None) -> None:
-    parser = build_parser()
-    args = parser.parse_args(argv)
-
+def _run_single(args: argparse.Namespace) -> None:
+    """Process a single ticker symbol."""
     config = PlotConfig(
         symbol=args.symbol,
         interval=args.interval,
@@ -91,17 +95,52 @@ def main(argv: list[str] | None = None) -> None:
     df = add_indicators(df, config)
     df = add_td_sequential(df)
 
-    buy9 = df["td_buy_9"].sum()
-    sell9 = df["td_sell_9"].sum()
-    print(f"  TD setups: {buy9} buy-9, {sell9} sell-9")
+    buy9 = int(df["td_buy_9"].sum())
+    sell9 = int(df["td_sell_9"].sum())
+    print(f"  TD setups in range: {buy9} buy-9, {sell9} sell-9")
 
-    # Always save data JSON to data/
+    last = df.iloc[-1]
+    print(f"  Latest bar  [{df.index[-1].date()}]  "
+          f"Buy setup: {int(last['td_buy_setup'])}/9  "
+          f"Sell setup: {int(last['td_sell_setup'])}/9")
+
     json_path = save_data_json(df, config.symbol, config.interval)
     print(f"  Data saved: {json_path}")
 
-    # Save PNG to images/ unless --show requested
     image_path = None if args.show else default_image_path(config.symbol, config.interval)
     plot_with_mplfinance(df, config, output_path=image_path)
+
+
+def main(argv: list[str] | None = None) -> None:
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.symbol is None:
+        # No symbol given — run the full watchlist
+        try:
+            run_daily_signals(
+                config_overrides=dict(
+                    interval=args.interval,
+                    period=args.period,
+                    start=args.start,
+                    end=args.end,
+                    ema_periods=args.ema,
+                    macd_fast=args.macd[0],
+                    macd_slow=args.macd[1],
+                    macd_signal=args.macd[2],
+                    volume_ma_period=args.vol_ma,
+                    show_td=not args.no_td,
+                    show_macd=not args.no_macd,
+                    style=args.style,
+                ),
+                save_charts=not args.show,
+                show_charts=args.show,
+            )
+        except EnvironmentError as exc:
+            print(f"[ERROR] {exc}", file=sys.stderr)
+            sys.exit(1)
+    else:
+        _run_single(args)
 
 
 if __name__ == "__main__":

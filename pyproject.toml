@@ -12,6 +12,7 @@ dependencies = [
     "mplfinance>=0.12.10b0",
     "matplotlib>=3.8",
     "yfinance>=0.2.40",
+    "python-dotenv>=1.0",
 ]
 
 [project.scripts]

@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-03-22 — STOCK_LIST env var and daily signal engine
+
+### Added
+- `.env` — `STOCK_LIST=AAPL,TSLA,SPY,QQQ` (gitignored; copy from `.env.example`)
+- `.env.example` — template for environment configuration
+- `tom_demark_indicator/signals.py` — `run_daily_signals()` reads `STOCK_LIST`, loops each ticker, prints TD status table, warns and alerts on invalid/missing symbols
+- `get_stock_list()` utility — parses and validates `STOCK_LIST` from environment
+
+### Changed
+- `cli.py` — omitting a symbol now triggers the full watchlist loop via `run_daily_signals()`; single ticker mode unchanged
+- `pyproject.toml` — added `python-dotenv>=1.0` dependency
+- `.gitignore` — `.env` excluded from version control
+- `__init__.py` — exports `run_daily_signals`, `get_stock_list`
+
+### Signal output format
+```
+=== Daily TD Sequential Signals [2026-03-22] ===
+Watchlist: AAPL, TSLA, SPY, QQQ
+
+  AAPL   | Buy  Setup  7/9 | Close $247.99 | 2026-03-20
+  QQQ    | Buy  Setup  9/9 | Close $582.06 | 2026-03-20  *** BUY 9 COMPLETE ***
+
+  [ALERT] The following symbols were not found or failed to load: FAKEXYZ
+```
+
 ## 2026-03-22 — images/ and data/ folders, JSON export
 
 ### Added
